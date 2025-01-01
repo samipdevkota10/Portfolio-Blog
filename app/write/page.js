@@ -1,45 +1,60 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import { db } from '@/firebase/firebaseConfig';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export default function WritePage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [title, setTitle] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
 
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Redirect unauthorized users
   useEffect(() => {
     if (!isLoaded) return;
-    if (!user || user?.emailAddresses[0]?.emailAddress !== 'samip.devkota@gmail.com') {
+    if (!user) {
       router.push('/');
     }
   }, [user, isLoaded, router]);
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: '',
-  });
-
   const saveBlog = async () => {
-    const content = editor?.getHTML() || '';
-    await fetch('/api/blogs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, author: user?.emailAddresses[0]?.emailAddress, imageUrl }),
-    });
-    router.push('/');
+    if (!title || !content) {
+      alert('Title and content are required!');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const blogsCollection = collection(db, 'blogs');
+      await addDoc(blogsCollection, {
+        title,
+        content,
+        author: user?.emailAddresses[0]?.emailAddress || 'Anonymous',
+        createdAt: serverTimestamp(),
+      });
+
+      alert('Blog saved successfully!');
+      router.push('/');
+    } catch (error) {
+      console.error('Error saving blog:', error.message);
+      alert(`Failed to save blog: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <Navbar />
-      <div className="px-8 pt-6">
+      <div className="flex-1 px-8 py-6">
         <input
           type="text"
           placeholder="Enter your title"
@@ -47,19 +62,20 @@ export default function WritePage() {
           onChange={(e) => setTitle(e.target.value)}
           className="w-full text-5xl border-b mb-4 focus:outline-none"
         />
-        <input
-          type="text"
-          placeholder="Enter image URL"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          className="w-full border-b mb-4 focus:outline-none"
+        <textarea
+          placeholder="Write your blog content here..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="w-full h-64 border-b mb-4 focus:outline-none resize-none"
         />
-        <EditorContent editor={editor} />
         <button
           onClick={saveBlog}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
+          disabled={isSaving}
+          className={`mt-4 px-4 py-2 rounded-md ${
+            isSaving ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+          } text-white`}
         >
-          Save Blog
+          {isSaving ? 'Saving...' : 'Save Blog'}
         </button>
       </div>
       <Footer />
