@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Blog {
-  id        String   @id @default(auto()) @map("_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   String
   author    String
@@ -16,4 +16,3 @@ model Blog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
