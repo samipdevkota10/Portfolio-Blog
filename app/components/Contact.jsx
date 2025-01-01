@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 // Animation Variants
 const fadeIn = (delay = 0) => ({
@@ -13,6 +14,53 @@ const fadeIn = (delay = 0) => ({
 });
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Handle Input Changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle Form Submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSuccess(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setError(true);
+      }
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        setSuccess(false);
+        setError(false);
+      }, 3000);
+    }
+  };
+
   return (
     <motion.section
       variants={fadeIn(0)}
@@ -27,65 +75,75 @@ const Contact = () => {
           <p className="text-neutral-600 text-lg">
             Feel free to reach out if you have any questions, ideas, or just want to say hi!
           </p>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-gray-100 h-10 w-10 rounded-full flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="#007bff"
-                  viewBox="0 0 479.058 479.058"
-                >
-                  <path d="M434.146 59.882H44.912C20.146 59.882 0 80.028 0 104.794v269.47c0 24.766 20.146 44.912 44.912 44.912h389.234c24.766 0 44.912-20.146 44.912-44.912v-269.47c0-24.766-20.146-44.912-44.912-44.912zm0 29.941c2.034 0 3.969.422 5.738 1.159L239.529 264.631 39.173 90.982a14.902 14.902 0 0 1 5.738-1.159zm0 299.411H44.912c-8.26 0-14.971-6.71-14.971-14.971V122.615l199.778 173.141c2.822 2.441 6.316 3.655 9.81 3.655s6.988-1.213 9.81-3.655l199.778-173.141v251.649c-.001 8.26-6.711 14.97-14.971 14.97z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm text-neutral-500">Email</p>
-                <a
-                  href="mailto:me@samipdevkota.com"
-                  className="text-blue-500 text-md font-medium hover:underline"
-                >
-                  me@samipdevkota.com
-                </a>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-gray-100 h-10 w-10 rounded-full flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="#007bff"
+                viewBox="0 0 479.058 479.058"
+              >
+                <path d="M434.146 59.882H44.912C20.146 59.882 0 80.028 0 104.794v269.47c0 24.766 20.146 44.912 44.912 44.912h389.234c24.766 0 44.912-20.146 44.912-44.912v-269.47c0-24.766-20.146-44.912-44.912-44.912z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-neutral-500">Email</p>
+              <a
+                href="mailto:me@samipdevkota.com"
+                className="text-blue-500 text-md font-medium hover:underline"
+              >
+                me@samipdevkota.com
+              </a>
             </div>
           </div>
         </div>
 
         {/* Contact Form */}
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
+            name="name"
             placeholder="Your Name"
-            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Your Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="email"
+            name="email"
             placeholder="Your Email"
-            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Your Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="text"
+            name="subject"
             placeholder="Subject"
-            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Subject"
+            value={formData.subject}
+            onChange={handleChange}
+            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
           />
           <textarea
+            name="message"
             placeholder="Your Message"
             rows="5"
-            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Your Message"
-          ></textarea>
+            value={formData.message}
+            onChange={handleChange}
+            className="w-full p-3 border border-neutral-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+          />
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md p-3 font-medium text-sm transition-all"
+            disabled={loading}
+            className={`w-full ${
+              loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+            } text-white rounded-md p-3 font-medium text-sm transition-all`}
           >
-            Send Message
+            {loading ? 'Sending...' : 'Send Message'}
           </button>
+          {success && <p className="text-green-500 mt-2">Message sent successfully!</p>}
+          {error && <p className="text-red-500 mt-2">Failed to send message. Try again later.</p>}
         </form>
       </div>
     </motion.section>
