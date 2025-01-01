@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { db } from '@/firebase';
+import { db } from '@/firebase'; // Import Firestore instance correctly
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -25,32 +25,34 @@ export default function WritePage() {
   }, [user, isLoaded, router]);
 
   // Save Blog to Firestore
-  const saveBlog = async () => {
-    if (!title.trim() || !content.trim()) {
-      alert('Title and content are required!');
-      return;
-    }
+  // Save Blog to Firestore
+const saveBlog = async () => {
+  if (!title.trim() || !content.trim()) {
+    alert('Title and content are required!');
+    return;
+  }
 
-    setIsSaving(true);
+  setIsSaving(true);
 
-    try {
-      const blogsCollection = collection(db, 'blogs');
-      await addDoc(blogsCollection, {
-        title: title.trim(),
-        content: content.trim(),
-        author: user?.emailAddresses?.[0]?.emailAddress || 'Anonymous',
-        createdAt: serverTimestamp(),
-      });
+  try {
+    const blogsCollection = collection(db, 'Blogs'); // Ensure collection name matches Firestore
+    await addDoc(blogsCollection, {
+      title: title.trim(), // Correct field name
+      content: content.trim(), // Correct field name
+      author: user?.emailAddresses?.[0]?.emailAddress || 'Anonymous',
+      createdAt: serverTimestamp(), // Automatically set timestamp
+    });
 
-      alert('Blog saved successfully!');
-      router.push('/');
-    } catch (error) {
-      console.error('Error saving blog:', error.message);
-      alert(`Failed to save blog: ${error.message}`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    alert('Blog saved successfully!');
+    router.push('/');
+  } catch (error) {
+    console.error('Error saving blog:', error.message);
+    alert(`Failed to save blog: ${error.message}`);
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   return (
     <div className="flex flex-col h-screen">
