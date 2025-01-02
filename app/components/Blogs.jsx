@@ -24,7 +24,7 @@ const Blogs = () => {
     const fetchBlogs = async () => {
       try {
         const blogsQuery = query(
-          collection(db, "blogs"),
+          collection(db, "Blogs"),
           orderBy("createdAt", "desc"),
           limit(6) // Fetch the latest 6 blogs
         );
