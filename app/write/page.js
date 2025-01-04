@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { db } from '@/firebase';
@@ -8,7 +8,7 @@ import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'fir
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-export default function WritePage() {
+function WriteContent() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,7 +51,6 @@ export default function WritePage() {
     }
   };
 
-  // Save or Update Blog
   const saveBlog = async () => {
     if (!title.trim() || !content.trim()) {
       alert('Title and content are required!');
@@ -90,7 +89,6 @@ export default function WritePage() {
     }
   };
 
-  // Handle word count for content
   const handleContentChange = (e) => {
     setContent(e.target.value);
     setWordCount(e.target.value.split(' ').filter(Boolean).length);
@@ -103,7 +101,6 @@ export default function WritePage() {
 
       {/* Main Content */}
       <div className="flex-1 px-8 py-6 max-w-screen-lg mx-auto">
-        {/* Title */}
         <input
           type="text"
           placeholder="Blog Title"
@@ -113,7 +110,6 @@ export default function WritePage() {
           style={{ border: 'none' }}
         />
 
-        {/* Content */}
         <textarea
           placeholder="Write your blog content here..."
           value={content}
@@ -122,7 +118,6 @@ export default function WritePage() {
           style={{ border: 'none' }}
         />
 
-        {/* Word Counter */}
         <div className="text-gray-500 text-sm mt-2 text-left">
           Word Count: {wordCount}
         </div>
@@ -150,5 +145,13 @@ export default function WritePage() {
       {/* Footer */}
       <Footer />
     </div>
+  );
+}
+
+export default function WritePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <WriteContent />
+    </Suspense>
   );
 }

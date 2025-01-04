@@ -58,24 +58,3 @@ export const CONTACT = {
   email: "me@samipdevkota.com",
 };
 
-
-export const BLOGS = [
-  {
-    title: "Understanding Retrieval-Augmented Generation (RAG)",
-    date: "Dec 25, 2024",
-    description: "Explore how RAG enhances AI models by improving information retrieval and response generation.",
-    link: "/blogs/rag-explained",
-  },
-  {
-    title: "Building Scalable Backend Systems",
-    date: "Dec 15, 2024",
-    description: "Learn the fundamentals of designing backend systems that scale effectively.",
-    link: "/blogs/scalable-backend",
-  },
-  {
-    title: "A Guide to Modern Frontend Frameworks",
-    date: "Dec 10, 2024",
-    description: "An overview of the most popular frontend frameworks and their use cases.",
-    link: "/blogs/frontend-frameworks",
-  },
-];
