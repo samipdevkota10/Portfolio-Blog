@@ -8,10 +8,15 @@ import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'fir
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+// Ensure dynamic rendering
+export const dynamic = 'force-dynamic';
+
 function WriteContent() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+  // Initialize searchParams only on the client side
+  const [searchParams, setSearchParams] = useState(null);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -26,13 +31,22 @@ function WriteContent() {
     if (!user) router.push('/');
   }, [user, isLoaded, router]);
 
-  // Fetch Blog for Editing
+  // Fetch search params and initialize blog editing
   useEffect(() => {
-    const id = searchParams.get('id');
-    if (id) {
-      setBlogId(id);
-      setIsEditing(true);
-      fetchBlog(id);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setSearchParams(params);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchParams) {
+      const id = searchParams.get('id');
+      if (id) {
+        setBlogId(id);
+        setIsEditing(true);
+        fetchBlog(id);
+      }
     }
   }, [searchParams]);
 
@@ -107,7 +121,6 @@ function WriteContent() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full text-5xl font-bold focus:outline-none mb-6 placeholder-gray-400 text-left"
-          style={{ border: 'none' }}
         />
 
         <textarea
@@ -115,7 +128,6 @@ function WriteContent() {
           value={content}
           onChange={handleContentChange}
           className="w-full h-[60vh] text-lg focus:outline-none placeholder-gray-400 text-left p-4 bg-white rounded-lg shadow-sm"
-          style={{ border: 'none' }}
         />
 
         <div className="text-gray-500 text-sm mt-2 text-left">
