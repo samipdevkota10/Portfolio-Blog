@@ -80,7 +80,7 @@ function WriteContent() {
         await updateDoc(blogRef, {
           title: title.trim(),
           content: content.trim(),
-          author: user?.emailAddresses?.[0]?.emailAddress || 'Anonymous',
+          author:  'Samip Devkota',
           updatedAt: serverTimestamp(),
         });
         alert('Blog updated successfully!');

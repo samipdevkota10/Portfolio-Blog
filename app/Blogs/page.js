@@ -83,7 +83,7 @@ export default function Home() {
                 {/* Blog Details */}
                 <div className="flex-1">
                   <Link href={`/Blogs/${blog.id}`} className="block hover:underline">
-                    <h2 className="text-3xl font-bold text-blue-700 mb-2 truncate">
+                    <h2 className="text-1xl font-bold text-blue-700 mb-2 truncate">
                       {blog.title || 'Untitled Blog'}
                     </h2>
                   </Link>
