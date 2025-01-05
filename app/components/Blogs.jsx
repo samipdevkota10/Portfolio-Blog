@@ -26,7 +26,7 @@ const Blogs = () => {
         const blogsQuery = query(
           collection(db, "Blogs"),
           orderBy("createdAt", "desc"),
-          limit(6) // Fetch the latest 6 blogs
+          limit(3) // Fetch the latest 6 blogs
         );
         const querySnapshot = await getDocs(blogsQuery);
         const blogsList = querySnapshot.docs.map((doc) => ({
