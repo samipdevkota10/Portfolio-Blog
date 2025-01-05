@@ -15,7 +15,7 @@ export default function Home() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
 
-  // Fetch Blogs from Firestore
+  // 📦 Fetch Blogs from Firestore
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -38,7 +38,7 @@ export default function Home() {
     fetchBlogs();
   }, []);
 
-  // Delete Blog
+  // 🗑️ Delete Blog
   const handleDelete = async (blogId) => {
     const confirmDelete = confirm('Are you sure you want to delete this blog?');
     if (!confirmDelete) return;
@@ -53,7 +53,7 @@ export default function Home() {
     }
   };
 
-  // Edit Blog
+  // ✏️ Edit Blog
   const handleEdit = (blog) => {
     router.push(
       `/write?id=${blog.id}&title=${encodeURIComponent(blog.title)}&content=${encodeURIComponent(blog.content)}`
@@ -62,13 +62,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Navbar */}
+      {/* 📚 Navbar */}
       <Navbar />
 
-      {/* Main Content */}
-      <main className="flex-1 px-8 py-6 w-full max-w-full">
+      {/* 📝 Main Content */}
+      <main className="flex-1 px-8 py-6 w-full max-w-screen-lg mx-auto">
         <h1 className="text-4xl font-bold mb-6 text-left">Blogs</h1>
 
+        {/* 📦 Loading or Empty State */}
         {loading ? (
           <p className="text-gray-500 text-center">Loading blogs...</p>
         ) : blogs.length === 0 ? (
@@ -78,17 +79,17 @@ export default function Home() {
             {blogs.map((blog) => (
               <li
                 key={blog.id}
-                className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow bg-white flex justify-between items-start w-full"
+                className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col md:flex-row justify-between items-start w-full overflow-hidden"
               >
-                {/* Blog Details */}
-                <div className="flex-1">
+                {/* 📄 Blog Details */}
+                <div className="flex-1 min-w-0">
                   <Link href={`/Blogs/${blog.id}`} className="block hover:underline">
-                    <h2 className="text-1xl font-bold text-blue-700 mb-2 truncate">
+                    <h1 className="text-xl font-bold text-blue-700 mb-2 truncate break-words">
                       {blog.title || 'Untitled Blog'}
-                    </h2>
+                    </h1>
                   </Link>
 
-                  <p className="text-gray-600 mt-2 line-clamp-2">
+                  <p className="text-gray-600 mt-2 line-clamp-2 break-words">
                     {blog.content || 'No content available'}
                   </p>
 
@@ -100,9 +101,9 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Edit/Delete Buttons */}
+                {/* 🛠️ Edit/Delete Buttons */}
                 {user && (
-                  <div className="flex flex-col gap-2 ml-6">
+                  <div className="flex flex-row md:flex-col gap-2 ml-0 md:ml-6 mt-4 md:mt-0">
                     <button
                       onClick={() => handleEdit(blog)}
                       className="px-4 py-2 text-sm text-gray-800 bg-yellow-100 hover:bg-yellow-200 rounded-md"
@@ -123,7 +124,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* 📃 Footer */}
       <Footer />
     </div>
   );
