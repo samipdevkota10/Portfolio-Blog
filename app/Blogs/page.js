@@ -66,7 +66,7 @@ export default function Home() {
       <Navbar />
 
       {/* 📝 Main Content */}
-      <main className="flex-1 px-8 py-6 w-full max-w-screen-lg mx-auto">
+      <main className="flex-1 px-4 md:px-8 lg:px-12 py-6 w-full max-w-screen-lg mx-auto">
         <h1 className="text-4xl font-bold mb-6 text-left">Blogs</h1>
 
         {/* 📦 Loading or Empty State */}
@@ -78,47 +78,48 @@ export default function Home() {
           <ul className="space-y-4">
             {blogs.map((blog) => (
               <li
-                key={blog.id}
-                className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col md:flex-row justify-between items-start w-full overflow-hidden"
-              >
-                {/* 📄 Blog Details */}
-                <div className="flex-1 min-w-0">
-                  <Link href={`/Blogs/${blog.id}`} className="block hover:underline">
-                    <h1 className="text-xl font-bold text-blue-700 mb-2 truncate break-words">
-                      {blog.title || 'Untitled Blog'}
-                    </h1>
-                  </Link>
-
-                  <p className="text-gray-600 mt-2 line-clamp-2 break-words">
-                    {blog.content || 'No content available'}
-                  </p>
-
-                  <p className="text-sm text-gray-400 mt-2">
-                    Posted on:{' '}
-                    {blog.createdAt?.toDate
-                      ? blog.createdAt.toDate().toLocaleDateString()
-                      : 'Unknown Date'}
-                  </p>
+              key={blog.id}
+              className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col md:flex-row md:items-center justify-between gap-4 w-full overflow-hidden"
+            >
+              {/* 📄 Blog Details */}
+              <div className="flex-1 min-w-0">
+                <Link href={`/Blogs/${blog.id}`} className="block hover:underline">
+                  <h1 className="text-xl font-bold text-blue-700 mb-2 break-words whitespace-normal md:line-clamp-2">
+                    {blog.title || 'Untitled Blog'}
+                  </h1>
+                </Link>
+            
+                <p className="text-gray-600 mt-2 line-clamp-2 break-words">
+                  {blog.content || 'No content available'}
+                </p>
+            
+                <p className="text-sm text-gray-400 mt-2">
+                  Posted on:{' '}
+                  {blog.createdAt?.toDate
+                    ? blog.createdAt.toDate().toLocaleDateString()
+                    : 'Unknown Date'}
+                </p>
+              </div>
+            
+              {/* 🛠️ Edit/Delete Buttons */}
+              {user && (
+                <div className="flex flex-row md:flex-col gap-2 items-center md:items-start">
+                  <button
+                    onClick={() => handleEdit(blog)}
+                    className="w-full md:w-auto px-4 py-2 text-sm text-gray-800 bg-yellow-100 hover:bg-yellow-200 rounded-md"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(blog.id)}
+                    className="w-full md:w-auto px-4 py-2 text-sm text-red-600 bg-red-100 hover:bg-red-200 rounded-md"
+                  >
+                    🗑️ Delete
+                  </button>
                 </div>
-
-                {/* 🛠️ Edit/Delete Buttons */}
-                {user && (
-                  <div className="flex flex-row md:flex-col gap-2 ml-0 md:ml-6 mt-4 md:mt-0">
-                    <button
-                      onClick={() => handleEdit(blog)}
-                      className="px-4 py-2 text-sm text-gray-800 bg-yellow-100 hover:bg-yellow-200 rounded-md"
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(blog.id)}
-                      className="px-4 py-2 text-sm text-red-600 bg-red-100 hover:bg-red-200 rounded-md"
-                    >
-                      🗑️ Delete
-                    </button>
-                  </div>
-                )}
-              </li>
+              )}
+            </li>
+            
             ))}
           </ul>
         )}
