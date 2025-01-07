@@ -1,47 +1,40 @@
-'use client';
+"use client";
 
-import { Suspense, useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { db } from '@/firebase';
-import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { db, storage } from "@/firebase";
+import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
-// Ensure dynamic rendering
-export const dynamic = 'force-dynamic';
-
-function WriteContent() {
-  const { user, isLoaded } = useUser();
+export default function WriteContent() {
   const router = useRouter();
-
-  // Initialize searchParams only on the client side
   const [searchParams, setSearchParams] = useState(null);
-
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [blogId, setBlogId] = useState(null);
-  const [wordCount, setWordCount] = useState(0);
 
-  // Redirect unauthorized users
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!user) router.push('/');
-  }, [user, isLoaded, router]);
+  // Ref for the editable content
+  const contentRef = useRef(null);
 
-  // Fetch search params and initialize blog editing
+  /**
+   * 📥 Fetch query parameters
+   */
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       setSearchParams(params);
     }
   }, []);
 
+  /**
+   * 📥 Fetch blog data for editing
+   */
   useEffect(() => {
     if (searchParams) {
-      const id = searchParams.get('id');
+      const id = searchParams.get("id");
       if (id) {
         setBlogId(id);
         setIsEditing(true);
@@ -52,60 +45,111 @@ function WriteContent() {
 
   const fetchBlog = async (id) => {
     try {
-      const blogRef = doc(db, 'Blogs', id);
+      const blogRef = doc(db, "Blogs", id);
       const blogSnap = await getDoc(blogRef);
       if (blogSnap.exists()) {
         const data = blogSnap.data();
-        setTitle(data.title || '');
-        setContent(data.content || '');
-        setWordCount(data.content?.split(' ').length || 0);
+        setTitle(data.title || "");
+        if (data.contentURL) {
+          const response = await fetch(data.contentURL);
+          const textContent = await response.text();
+          if (contentRef.current) {
+            contentRef.current.innerHTML = textContent;
+          }
+        }
       }
     } catch (error) {
-      console.error('Failed to fetch blog:', error.message);
+      console.error("Failed to fetch blog:", error.message);
     }
   };
 
+  /**
+   * 📤 Upload content to Firebase Storage
+   */
+  const uploadToStorage = async (file, folder, fileType = "text/html") => {
+    try {
+      const contentBlob = new Blob([file], { type: fileType });
+      const fileName = `${folder}/${title.replace(/\s/g, "_")}_${Date.now()}.html`;
+
+      const storageRef = ref(storage, fileName);
+      await uploadBytes(storageRef, contentBlob, { contentType: fileType });
+      const downloadURL = await getDownloadURL(storageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error(`Failed to upload ${folder}:`, error.message);
+      throw error;
+    }
+  };
+
+  /**
+   * 📤 Upload Image
+   */
+  const uploadImage = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const imageURL = await getDownloadURL(storageRef);
+
+      // Insert image into the content editor
+      if (contentRef.current) {
+        contentRef.current.innerHTML += `<img src="${imageURL}" alt="Uploaded Image" style="max-width: 100%; height: auto;" />`;
+      }
+    } catch (error) {
+      console.error("Failed to upload image:", error.message);
+    }
+  };
+
+  /**
+   * 💾 Save Blog
+   */
   const saveBlog = async () => {
-    if (!title.trim() || !content.trim()) {
-      alert('Title and content are required!');
+    if (!title.trim() || !contentRef.current.innerHTML.trim()) {
+      alert("Title and content are required!");
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const blogsCollection = collection(db, 'Blogs');
+      const contentHTML = contentRef.current.innerHTML;
+      const contentURL = await uploadToStorage(contentHTML, "blogs");
+
+      const blogData = {
+        title: title.trim(),
+        contentURL,
+        author: "Samip Devkota",
+        updatedAt: serverTimestamp(),
+      };
+
       if (isEditing && blogId) {
-        const blogRef = doc(db, 'Blogs', blogId);
-        await updateDoc(blogRef, {
-          title: title.trim(),
-          content: content.trim(),
-          author:  'Samip Devkota',
-          updatedAt: serverTimestamp(),
-        });
-        alert('Blog updated successfully!');
+        const blogRef = doc(db, "Blogs", blogId);
+        await updateDoc(blogRef, blogData);
+        alert("Blog updated successfully!");
       } else {
-        await addDoc(blogsCollection, {
-          title: title.trim(),
-          content: content.trim(),
-          author: user?.emailAddresses?.[0]?.emailAddress || 'Anonymous',
-          createdAt: serverTimestamp(),
-        });
-        alert('Blog saved successfully!');
+        const blogsCollection = collection(db, "Blogs");
+        blogData.createdAt = serverTimestamp();
+        const docRef = await addDoc(blogsCollection, blogData);
+        console.log("Blog saved with ID:", docRef.id);
+        alert("Blog saved successfully!");
       }
 
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('Error saving/updating blog:', error.message);
+      console.error("Error saving blog:", error.message);
       alert(`Failed to save blog: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleContentChange = (e) => {
-    setContent(e.target.value);
-    setWordCount(e.target.value.split(' ').filter(Boolean).length);
+  /**
+   * Toolbar Actions
+   */
+  const formatText = (command) => {
+    document.execCommand(command, false, null);
   };
 
   return (
@@ -113,57 +157,41 @@ function WriteContent() {
       {/* Navbar */}
       <Navbar />
 
-      {/* Main Content */}
-      <div className="flex-1 px-8 py-6 max-w-screen-lg mx-auto">
+      {/* Blog Editor */}
+      <div className="flex-1 px-8 py-6 mx-auto w-full max-w-screen-xl">
+        {/* Title Input */}
         <input
           type="text"
           placeholder="Blog Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-5xl font-bold focus:outline-none mb-6 placeholder-gray-400 text-left"
+          className="w-full text-5xl font-bold mb-6 p-2 border-b border-gray-300 focus:outline-none"
         />
 
-        <textarea
-          placeholder="Write your blog content here..."
-          value={content}
-          onChange={handleContentChange}
-          className="w-full h-[60vh] text-lg focus:outline-none placeholder-gray-400 text-left p-4 bg-white rounded-lg shadow-sm"
-        />
-
-        <div className="text-gray-500 text-sm mt-2 text-left">
-          Word Count: {wordCount}
+        {/* Toolbar */}
+        <div className="mb-4 flex gap-2 border-b border-gray-200 pb-2">
+          <button onClick={() => formatText("bold")}>Bold</button>
+          <button onClick={() => formatText("insertUnorderedList")}>Bullet List</button>
+          <button onClick={() => formatText("insertOrderedList")}>Ordered List</button>
+          <input type="file" onChange={uploadImage} />
         </div>
+
+        {/* Content Editor */}
+        <div
+          ref={contentRef}
+          contentEditable
+          className="w-full min-h-[400px] border border-gray-300 rounded-lg p-4 bg-white shadow-md"
+        />
       </div>
 
-      {/* Action Buttons */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 py-4 px-8 flex justify-start gap-4 shadow-md">
-        <button
-          onClick={() => router.push('/')}
-          className="text-lg font-medium hover:underline"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={saveBlog}
-          disabled={isSaving}
-          className={`text-lg font-medium ${
-            isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:underline'
-          }`}
-        >
-          {isSaving ? (isEditing ? 'Updating...' : 'Saving...') : isEditing ? 'Update Blog' : 'Save Blog'}
-        </button>
+      {/* Save */}
+      <div className="flex justify-end gap-4 p-4 bg-white border-t">
+        <button onClick={() => router.push("/")}>Cancel</button>
+        <button onClick={saveBlog}>{isSaving ? "Saving..." : "Save Blog"}</button>
       </div>
 
       {/* Footer */}
       <Footer />
     </div>
-  );
-}
-
-export default function WritePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <WriteContent />
-    </Suspense>
   );
 }

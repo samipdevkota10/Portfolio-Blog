@@ -5,6 +5,7 @@ import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase"; // Ensure correct firebase.js path
 import { motion } from "framer-motion";
 import Link from "next/link";
+import DOMPurify from "dompurify";
 
 const fadeIn = (delay = 0) => ({
   hidden: { opacity: 0, y: 20 },
@@ -19,20 +20,49 @@ const Blogs = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Latest Blogs
+  // 🚀 Fetch Blogs with Metadata and Content from Firestore and Storage
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const blogsQuery = query(
           collection(db, "Blogs"),
           orderBy("createdAt", "desc"),
-          limit(3) // Fetch the latest 6 blogs
+          limit(3) // Fetch the latest 3 blogs
         );
         const querySnapshot = await getDocs(blogsQuery);
-        const blogsList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+
+        // Fetch blog metadata and content
+        const blogsList = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const blogData = {
+              id: doc.id,
+              ...doc.data(),
+            };
+
+            // Fetch content from Storage using contentURL
+            if (blogData.contentURL) {
+              try {
+                const response = await fetch(blogData.contentURL);
+                if (!response.ok) {
+                  throw new Error(`Failed to fetch content for ${blogData.title}`);
+                }
+                const contentText = await response.text();
+                blogData.content = DOMPurify.sanitize(contentText); // Sanitize HTML content
+              } catch (error) {
+                console.warn(
+                  `Failed to fetch content for blog: ${blogData.title}`,
+                  error.message
+                );
+                blogData.content = "Failed to load content.";
+              }
+            } else {
+              blogData.content = "No content available.";
+            }
+
+            return blogData;
+          })
+        );
+
         setBlogs(blogsList);
       } catch (error) {
         console.error("Error fetching blogs:", error.message);
@@ -46,7 +76,7 @@ const Blogs = () => {
 
   return (
     <section className="border-b border-neutral-900 py-12">
-      {/* Section Title */}
+      {/* 📚 Section Title */}
       <motion.h1
         variants={fadeIn(0)}
         initial="hidden"
@@ -56,7 +86,7 @@ const Blogs = () => {
         Recent Blogs
       </motion.h1>
 
-      {/* Blog List */}
+      {/* 📦 Blog List */}
       {loading ? (
         <p className="text-center text-gray-500">Loading blogs...</p>
       ) : blogs.length === 0 ? (
@@ -71,17 +101,30 @@ const Blogs = () => {
               animate="visible"
               className="p-4 border rounded-md shadow-sm hover:shadow-md transition-shadow"
             >
-              <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
+              {/* 📝 Blog Title */}
+              <h3 className="text-xl font-semibold mb-2">
+                {blog.title || "Untitled Blog"}
+              </h3>
+
+              {/* 📅 Blog Date */}
               <p className="text-sm text-gray-500 mb-2">
                 {blog.createdAt?.toDate
                   ? blog.createdAt.toDate().toLocaleDateString()
                   : "Unknown Date"}
               </p>
-              <p className="text-gray-700 mb-4">
-                {blog.content?.length > 100
-                  ? `${blog.content.substring(0, 100)}...`
-                  : blog.content || "No content available"}
-              </p>
+
+              {/* 📝 Blog Content Preview */}
+              <div
+                className="text-gray-700 mb-4 whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    blog.content?.length > 100
+                      ? `${blog.content.substring(0, 100)}...`
+                      : blog.content || "No content available",
+                }}
+              ></div>
+
+              {/* 🔗 Read More Link */}
               <Link
                 href={`/Blogs/${blog.id}`}
                 className="text-blue-600 hover:underline"
@@ -93,7 +136,7 @@ const Blogs = () => {
         </div>
       )}
 
-      {/* Load More Button */}
+      {/* 🔄 Load More Button */}
       <div className="text-center mt-8">
         <Link
           href="/Blogs"
