@@ -7,7 +7,6 @@ import { getStorage } from 'firebase/storage';
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyApGqAGOwySR60iR4XhpXZDEgkzFkSDHjs",
-  authDomain: "portfolio-blog-2915a.firebaseapp.com",
   projectId: "portfolio-blog-2915a",
   storageBucket: "portfolio-blog-2915a.firebasestorage.app",
   messagingSenderId: "619490649902",
