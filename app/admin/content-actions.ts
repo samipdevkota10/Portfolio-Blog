@@ -96,7 +96,7 @@ export type ActionResult = { ok: true; id: string; slug: string } | { ok: false;
 
 export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 export async function uploadImage(formData: FormData): Promise<UploadResult> {
@@ -110,7 +110,7 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
     return { ok: false, error: "Unsupported image type" };
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    return { ok: false, error: "Image must be 5MB or smaller" };
+    return { ok: false, error: "Image must be 10MB or smaller" };
   }
 
   try {

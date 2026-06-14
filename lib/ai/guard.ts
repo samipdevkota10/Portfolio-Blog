@@ -73,7 +73,14 @@ export async function checkChatRequest({ ip, origin, referer, sessionId, message
     return { ok: false, status: 413, message: "Too many messages in this conversation. Please start a new chat." };
   }
 
-  if (messages.some((message) => message.content.length > CHAT_LIMITS.maxMessageChars)) {
+  // Only police user input length. Assistant replies are model-generated and can
+  // legitimately exceed this; enforcing it on them would reject the whole history
+  // on the next turn once a single long answer is echoed back.
+  if (
+    messages.some(
+      (message) => message.role === "user" && message.content.length > CHAT_LIMITS.maxMessageChars,
+    )
+  ) {
     return {
       ok: false,
       status: 413,

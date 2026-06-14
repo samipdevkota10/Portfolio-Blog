@@ -2,7 +2,7 @@
 
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useCallback, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { uploadImage } from "@/app/admin/content-actions";
 import { richTextExtensions } from "@/lib/content/richtext-extensions";
@@ -47,6 +47,17 @@ function Toolbar({ editor }: { editor: Editor }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // The editor no longer re-renders on every transaction (that caused the page to
+  // jump on click), so the toolbar subscribes locally to keep its active states
+  // in sync. This only re-renders the Toolbar, never the EditorContent subtree.
+  const [, refreshToolbar] = useReducer((value: number) => value + 1, 0);
+  useEffect(() => {
+    editor.on("transaction", refreshToolbar);
+    return () => {
+      editor.off("transaction", refreshToolbar);
+    };
+  }, [editor]);
 
   const setLink = useCallback(() => {
     const previous = editor.getAttributes("link").href as string | undefined;
@@ -155,17 +166,22 @@ function Toolbar({ editor }: { editor: Editor }) {
   );
 }
 
-export function RichTextEditor({ initialContent, placeholder, onChange }: RichTextEditorProps) {
-  const emit = useCallback(
-    (instance: Editor) => {
-      onChange({
-        json: instance.getJSON(),
-        html: instance.getHTML(),
-        text: instance.getText(),
-      });
-    },
-    [onChange],
-  );
+function RichTextEditorImpl({ initialContent, placeholder, onChange }: RichTextEditorProps) {
+  // Read onChange through a ref so a changing callback identity from the parent
+  // (a new inline arrow every keystroke) never forces the editor subtree to
+  // re-render — re-rendering EditorContent mid-transaction makes the page jump.
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const emit = useCallback((instance: Editor) => {
+    onChangeRef.current({
+      json: instance.getJSON(),
+      html: instance.getHTML(),
+      text: instance.getText(),
+    });
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -174,6 +190,7 @@ export function RichTextEditor({ initialContent, placeholder, onChange }: RichTe
     ],
     content: initialContent ?? "",
     immediatelyRender: false,
+    shouldRerenderOnTransaction: false,
     editorProps: {
       attributes: {
         class:
@@ -195,3 +212,11 @@ export function RichTextEditor({ initialContent, placeholder, onChange }: RichTe
     </div>
   );
 }
+
+// Only re-mount the editor when the document it was seeded with changes — parent
+// re-renders that merely pass a new onChange identity must not re-render here.
+export const RichTextEditor = memo(
+  RichTextEditorImpl,
+  (prev, next) =>
+    prev.initialContent === next.initialContent && prev.placeholder === next.placeholder,
+);

@@ -26,6 +26,33 @@ function createAssistantGreeting(): ChatMessage {
   };
 }
 
+const SECTION_PROMPTS: Record<string, string> = {
+  hero: "Ask me anything about Samip…",
+  writing: "Ask about this blog or what Samip writes about…",
+  projects: "Ask how any of these projects were built…",
+  experience: "Ask about Samip's roles and experience…",
+};
+
+const PAGE_PROMPTS: Record<string, string> = {
+  home: "Ask about projects, experience, or writing…",
+  blog: "Ask me to find or summarize a post…",
+  "blog-post": "Ask anything about this post…",
+  projects: "Ask how any of these projects were built…",
+  project: "Ask about this project — stack, tradeoffs, impact…",
+  experience: "Ask about Samip's roles and experience…",
+  tags: "Ask me to point you to the best posts on this topic…",
+};
+
+// The input placeholder follows whatever section the visitor is currently viewing,
+// falling back to a per-page prompt, so the question hint stays contextual as they scroll.
+function resolvePrompt(context: ChatPageContext): string {
+  return (
+    (context.section && SECTION_PROMPTS[context.section]) ??
+    PAGE_PROMPTS[context.page] ??
+    "Ask about projects, experience, or writing…"
+  );
+}
+
 export function ChatPanel({ context }: { context: ChatPageContext }) {
   const [messages, setMessages] = useState<ChatMessage[]>([createAssistantGreeting()]);
   const [input, setInput] = useState("");
@@ -34,6 +61,7 @@ export function ChatPanel({ context }: { context: ChatPageContext }) {
   const [sessionId, setSessionId] = useState<string | undefined>();
   const metaRef = useRef<StreamMeta | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const prompt = resolvePrompt(context);
 
   useEffect(() => {
     viewportRef.current?.scrollTo({
@@ -194,7 +222,7 @@ export function ChatPanel({ context }: { context: ChatPageContext }) {
             }
           }}
           rows={2}
-          placeholder="Ask about projects, experience, or writing."
+          placeholder={prompt}
           className="w-full resize-none rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-ember"
         />
         <div className="mt-2 flex items-center justify-between">

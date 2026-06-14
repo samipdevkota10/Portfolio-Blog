@@ -36,9 +36,9 @@ export default async function HomePage() {
             I like to build things.
           </h2>
           <p className="max-w-3xl text-lg leading-8 text-ink/70">
-            Software engineer who likes shipping real things &mdash; not slide decks. This site is a peek at
-            what I&apos;ve built, what I&apos;ve learned, and what I&apos;m thinking about. Poke around the projects,
-            read the blog, or just ask the AI chatbot &mdash; it knows everything here and follows along as you scroll.
+            I&apos;m a software engineer who likes building cool things.
+            This website is a preview of my projects, writing, and experiences across software, AI, and product-building. It&apos;s a place to see what I&apos;ve worked on, what I&apos;m thinking about, and how I approach building.
+            Poke around the projects, read the blog, or just ask the AI chatbot &mdash; it knows everything here and follows along as you scroll.
           </p>
         </div>
       </section>

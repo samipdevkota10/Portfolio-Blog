@@ -3,7 +3,7 @@ import "server-only";
 import { Timestamp, type Firestore } from "firebase-admin/firestore";
 
 import { firestore } from "@/lib/firebase/admin";
-import type { RichTextDoc } from "@/lib/content/richtext";
+import { emptyRichTextDoc, htmlToTiptapJson, type RichTextDoc } from "@/lib/content/richtext";
 
 export type ContentStatus = "draft" | "published";
 
@@ -18,6 +18,28 @@ function requireDb(): Firestore {
     );
   }
   return firestore;
+}
+
+/**
+ * Resolve the editor's Tiptap document. Newer docs store a `bodyJson` doc directly;
+ * legacy/migrated/seeded docs may only carry an HTML string (`bodyHtml`/`content`),
+ * in which case we rebuild the JSON so the editor isn't handed an empty `{}`.
+ */
+function resolveBodyJson(data: FirebaseFirestore.DocumentData): RichTextDoc {
+  const stored = data.bodyJson as RichTextDoc | undefined;
+  if (stored && stored.type === "doc" && Array.isArray(stored.content) && stored.content.length > 0) {
+    return stored;
+  }
+
+  const html = String(data.bodyHtml ?? data.content ?? "").trim();
+  if (!html) {
+    return emptyRichTextDoc;
+  }
+
+  // Tiptap's generateJSON returns nodes whose `attrs` are null-prototype objects,
+  // which cannot cross the Server → Client Component boundary. A JSON round-trip
+  // rehydrates them as plain objects so the editor page can pass the doc down.
+  return JSON.parse(JSON.stringify(htmlToTiptapJson(html))) as RichTextDoc;
 }
 
 function toDate(value: unknown): Date | null {
@@ -145,7 +167,7 @@ function mapPostDoc(id: string, data: FirebaseFirestore.DocumentData): PostRow {
     slug: String(data.slug ?? id),
     title: String(data.title ?? "Untitled"),
     summary: String(data.summary ?? ""),
-    bodyJson: (data.bodyJson as Record<string, unknown>) ?? {},
+    bodyJson: resolveBodyJson(data),
     bodyHtml: String(data.bodyHtml ?? data.content ?? ""),
     bodyText: String(data.bodyText ?? data.contentText ?? ""),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
@@ -165,7 +187,7 @@ function mapProjectDoc(id: string, data: FirebaseFirestore.DocumentData): Projec
     slug: String(data.slug ?? id),
     title: String(data.title ?? "Untitled"),
     summary: String(data.summary ?? ""),
-    bodyJson: (data.bodyJson as Record<string, unknown>) ?? {},
+    bodyJson: resolveBodyJson(data),
     bodyHtml: String(data.bodyHtml ?? ""),
     bodyText: String(data.bodyText ?? ""),
     role: String(data.role ?? ""),
@@ -190,7 +212,7 @@ function mapExperienceDoc(id: string, data: FirebaseFirestore.DocumentData): Exp
     company: String(data.company ?? ""),
     location: String(data.location ?? ""),
     summary: String(data.summary ?? ""),
-    bodyJson: (data.bodyJson as Record<string, unknown>) ?? {},
+    bodyJson: resolveBodyJson(data),
     bodyHtml: String(data.bodyHtml ?? ""),
     bodyText: String(data.bodyText ?? ""),
     technologies: Array.isArray(data.technologies) ? data.technologies.map(String) : [],

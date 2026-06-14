@@ -28,6 +28,29 @@ function resolveNudge(page: string, section?: string) {
   return (section && SECTION_NUDGES[section]) ?? PAGE_NUDGES[page] ?? null;
 }
 
+// Short header line shown persistently while the panel is open, so the prompt
+// always reflects whatever section the visitor is currently viewing.
+const SECTION_HEADERS: Record<string, string> = {
+  hero: "Ask me anything about Samip",
+  writing: "Ask about the blog & writing",
+  projects: "Ask how these projects were built",
+  experience: "Ask about Samip's experience",
+};
+
+const PAGE_HEADERS: Record<string, string> = {
+  home: "Ask me anything",
+  blog: "Find or summarize a post",
+  "blog-post": "Ask about this post",
+  projects: "Ask how these were built",
+  project: "Ask about this project",
+  experience: "Ask about Samip's experience",
+  tags: "Explore this topic",
+};
+
+function resolveHeader(page: string, section?: string) {
+  return (section && SECTION_HEADERS[section]) ?? PAGE_HEADERS[page] ?? "Ask me anything";
+}
+
 export function ChatWidget() {
   const context = usePageContext();
   const [open, setOpen] = useState(true);
@@ -74,7 +97,18 @@ export function ChatWidget() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ember">AI Assistant</p>
-                  <h3 className="font-serif text-lg">Ask me anything</h3>
+                  <AnimatePresence mode="wait">
+                    <motion.h3
+                      key={resolveHeader(context.page, context.section)}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.18 }}
+                      className="font-serif text-lg"
+                    >
+                      {resolveHeader(context.page, context.section)}
+                    </motion.h3>
+                  </AnimatePresence>
                 </div>
                 <button
                   type="button"
