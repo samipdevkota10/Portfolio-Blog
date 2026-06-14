@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Script from "next/script";
 import { notFound } from "next/navigation";
 
@@ -56,6 +57,18 @@ export default async function BlogDetailPage({
         }}
       />
       <article data-chat-section="writing" className="mx-auto max-w-4xl px-6 py-16 lg:px-8">
+        {post.coverImage ? (
+          <div className="relative mb-10 aspect-[16/9] overflow-hidden rounded-3xl border border-black/5 bg-black/5">
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              priority
+              sizes="(min-width: 1024px) 56rem, 100vw"
+              className="object-cover"
+            />
+          </div>
+        ) : null}
         <div className="space-y-5">
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (

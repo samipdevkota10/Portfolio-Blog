@@ -6,10 +6,6 @@
   color-scheme: light;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   @apply bg-linen text-ink antialiased;
   font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;

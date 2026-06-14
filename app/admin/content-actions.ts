@@ -43,11 +43,11 @@ const postInputSchema = z.object({
   id: z.string().min(1).optional(),
   slug: slugSchema,
   title: z.string().min(1).max(255),
-  summary: z.string().min(1),
+  summary: z.string(),
   bodyJson: bodyJsonSchema,
   bodyHtml: z.string(),
   bodyText: z.string(),
-  tags: z.array(z.string().min(1)).min(1),
+  tags: z.array(z.string().min(1)),
   coverImage: z.string().url().optional().or(z.literal("")),
   canonicalUrl: z.string().url().optional().or(z.literal("")),
   status: z.enum(["draft", "published"]),
@@ -58,7 +58,7 @@ const projectInputSchema = z.object({
   id: z.string().min(1).optional(),
   slug: slugSchema,
   title: z.string().min(1).max(255),
-  summary: z.string().min(1),
+  summary: z.string(),
   bodyJson: bodyJsonSchema,
   bodyHtml: z.string(),
   bodyText: z.string(),
@@ -78,7 +78,7 @@ const experienceInputSchema = z.object({
   title: z.string().min(1).max(255),
   company: z.string().min(1).max(160),
   location: z.string().min(1).max(160),
-  summary: z.string().min(1),
+  summary: z.string(),
   bodyJson: bodyJsonSchema,
   bodyHtml: z.string(),
   bodyText: z.string(),
@@ -91,6 +91,15 @@ const experienceInputSchema = z.object({
     .optional()
     .or(z.literal("")),
 });
+
+function describeValidationError(error: z.ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) {
+    return "Invalid input";
+  }
+  const field = issue.path.filter((segment) => typeof segment === "string").join(".");
+  return field ? `${field}: ${issue.message}` : issue.message;
+}
 
 export type ActionResult = { ok: true; id: string; slug: string } | { ok: false; error: string };
 
@@ -151,7 +160,7 @@ export async function savePost(rawInput: unknown): Promise<ActionResult> {
 
   const parsed = postInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { ok: false, error: describeValidationError(parsed.error) };
   }
 
   const input = parsed.data;
@@ -221,7 +230,7 @@ export async function saveProject(rawInput: unknown): Promise<ActionResult> {
 
   const parsed = projectInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { ok: false, error: describeValidationError(parsed.error) };
   }
 
   const input = parsed.data;
@@ -291,7 +300,7 @@ export async function saveExperience(rawInput: unknown): Promise<ActionResult> {
 
   const parsed = experienceInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { ok: false, error: describeValidationError(parsed.error) };
   }
 
   const input = parsed.data;
