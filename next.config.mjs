@@ -1,10 +1,19 @@
-/** @type {import('next').NextConfig} */
+import path from "node:path";
+
+/** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-
-  // ✅ Disable ESLint during builds (if not using ESLint actively)
-  eslint: {
-    ignoreDuringBuilds: true,
+  typedRoutes: true,
+  turbopack: {
+    root: path.resolve("."),
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
   },
 };
 

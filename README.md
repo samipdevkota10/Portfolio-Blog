@@ -1,37 +1,51 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Portfolio Platform
 
-## Getting Started
+This repository contains a server-first personal platform built with Next.js App Router, TypeScript, MDX, Drizzle, Postgres, and a grounded OpenAI-powered portfolio assistant.
 
-First, run the development server:
+## What it includes
+
+- Typed MDX collections for blog posts, projects, experience, and a canonical profile source
+- Server-rendered portfolio pages with JSON-LD, RSS, sitemap, and Open Graph image support
+- Dynamic server routes for comments, contact submissions, AI chat, and admin reindexing
+- Drizzle schema for comments, contact submissions, chat state, source documents, embeddings, and events
+- Retrieval scaffolding for a grounded assistant over the portfolio corpus
+- CI-friendly scripts for search-index generation, AI ingestion, and retrieval evals
+- Vitest unit/integration tests and Playwright E2E coverage
+
+## Quick start
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy the environment template and fill in what you need:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Useful scripts
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run test:e2e
+npm run search:index
+npm run ai:ingest
+npm run ai:evals
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Environment notes
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-# Portfolio-Blog
+- The site builds without Postgres, Clerk, Resend, or OpenAI configured.
+- Dynamic features degrade gracefully until their backing services are configured.
+- To enable semantic retrieval, provision Postgres with `pgvector`, set `DATABASE_URL`, and run the AI ingestion flow.

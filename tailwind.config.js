@@ -1,12 +1,23 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+const config = {
   content: [
-    "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}",
-    "./pages/**/*.{js,jsx,ts,tsx}",
+    "./app/**/*.{ts,tsx,mdx}",
+    "./components/**/*.{ts,tsx}",
+    "./content/**/*.{md,mdx}",
+    "./lib/**/*.{ts,tsx}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        ink: "#151515",
+        linen: "#f6f1e8",
+        ember: "#c46435",
+        moss: "#2c4a3d",
+        brass: "#af8a40"
+      }
+    }
   },
-  plugins: [],
+  plugins: []
 };
+
+export default config;

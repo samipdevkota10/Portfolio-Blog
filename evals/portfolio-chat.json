@@ -1,0 +1,14 @@
+[
+  {
+    "question": "How is the portfolio assistant grounded?",
+    "expectedSource": "building-a-grounded-portfolio-assistant"
+  },
+  {
+    "question": "What changed when the site moved away from client-side CRUD?",
+    "expectedSource": "from-client-crud-to-server-first-content"
+  },
+  {
+    "question": "Which project focused on a retrieval-backed AI assistant?",
+    "expectedSource": "portfolio-platform-rebuild"
+  }
+]
