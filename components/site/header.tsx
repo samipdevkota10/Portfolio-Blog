@@ -54,6 +54,8 @@ export function SiteHeader({ clerkEnabled }: { clerkEnabled: boolean }) {
           className="rounded-full border border-black/10 p-2 lg:hidden"
           onClick={() => setOpen((value) => !value)}
           aria-label="Toggle navigation"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -67,9 +69,11 @@ export function SiteHeader({ clerkEnabled }: { clerkEnabled: boolean }) {
         </nav>
       </div>
       <nav
+        id="mobile-nav"
+        aria-hidden={!open}
         className={cn(
           "overflow-hidden border-t border-black/5 px-6 transition-all lg:hidden",
-          open ? "max-h-80 py-4" : "max-h-0 py-0",
+          open ? "max-h-80 py-4" : "invisible max-h-0 py-0",
         )}
       >
         <div className="flex flex-col gap-3">

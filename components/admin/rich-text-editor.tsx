@@ -73,7 +73,8 @@ function Toolbar({ editor }: { editor: Editor }) {
   const addImageByUrl = useCallback(() => {
     const url = window.prompt("Image URL", "https://");
     if (!url) return;
-    editor.chain().focus().setImage({ src: url }).run();
+    const alt = window.prompt("Describe this image (alt text)", "") ?? "";
+    editor.chain().focus().setImage({ src: url, alt }).run();
   }, [editor]);
 
   const handleFileSelected = useCallback(
@@ -82,6 +83,7 @@ function Toolbar({ editor }: { editor: Editor }) {
       event.target.value = "";
       if (!file) return;
 
+      const alt = window.prompt("Describe this image (alt text)", "") ?? "";
       setUploadError(null);
       setUploading(true);
       const data = new FormData();
@@ -90,7 +92,7 @@ function Toolbar({ editor }: { editor: Editor }) {
       setUploading(false);
 
       if (result.ok) {
-        editor.chain().focus().setImage({ src: result.url }).run();
+        editor.chain().focus().setImage({ src: result.url, alt }).run();
       } else {
         setUploadError(result.error);
       }
@@ -194,7 +196,7 @@ function RichTextEditorImpl({ initialContent, placeholder, onChange }: RichTextE
     editorProps: {
       attributes: {
         class:
-          "prose prose-ink max-w-none min-h-[20rem] px-4 py-3 focus:outline-none text-ink leading-7",
+          "prose max-w-none min-h-[20rem] px-4 py-3 focus:outline-none prose-headings:font-serif prose-headings:text-ink prose-p:text-ink/80 prose-li:text-ink/80 prose-strong:text-ink prose-a:text-ember prose-blockquote:border-l-ember/50 prose-blockquote:not-italic prose-blockquote:text-ink/70 prose-code:text-moss prose-pre:bg-ink prose-pre:text-linen prose-img:rounded-2xl",
       },
     },
     onCreate: ({ editor: instance }) => {

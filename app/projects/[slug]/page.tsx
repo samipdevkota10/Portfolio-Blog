@@ -65,7 +65,10 @@ export default async function ProjectDetailPage({
             ))}
           </div>
         </div>
-        <div className="prose mt-12 max-w-none" dangerouslySetInnerHTML={{ __html: project.content }} />
+        <div
+          className="prose prose-lg mt-12 max-w-none prose-headings:font-serif prose-headings:text-ink prose-p:text-ink/80 prose-li:text-ink/80 prose-strong:text-ink prose-a:text-ember prose-a:decoration-ember/40 hover:prose-a:decoration-ember prose-blockquote:border-l-ember/50 prose-blockquote:font-normal prose-blockquote:not-italic prose-blockquote:text-ink/70 prose-code:text-moss prose-pre:bg-ink prose-pre:text-linen prose-img:rounded-2xl prose-hr:border-black/10"
+          dangerouslySetInnerHTML={{ __html: project.content }}
+        />
       </section>
     </>
   );

@@ -31,3 +31,12 @@ h4,
 .prose code::after {
   content: "";
 }
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #c46435;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

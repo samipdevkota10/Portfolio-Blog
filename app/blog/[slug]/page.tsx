@@ -83,7 +83,10 @@ export default async function BlogDetailPage({
             {formatDate(post.publishedAt)} · {post.readingTime}
           </p>
         </div>
-        <div className="prose mt-12 max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div
+          className="prose prose-lg mt-12 max-w-none prose-headings:font-serif prose-headings:text-ink prose-p:text-ink/80 prose-li:text-ink/80 prose-strong:text-ink prose-a:text-ember prose-a:decoration-ember/40 hover:prose-a:decoration-ember prose-blockquote:border-l-ember/50 prose-blockquote:font-normal prose-blockquote:not-italic prose-blockquote:text-ink/70 prose-code:text-moss prose-pre:bg-ink prose-pre:text-linen prose-img:rounded-2xl prose-hr:border-black/10"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       </article>
       <div className="mx-auto max-w-4xl px-6 pb-16 lg:px-8">
         <CommentsPanel slug={post.slug} />
